@@ -4,7 +4,8 @@ import '../../style/interviewDashboard.scss'
 import { useInterview } from '../../hooks/useInterview.js'
 import { startInterviewSession } from '../../services/interview.api'
 import { useNavigate, useParams } from 'react-router'
-import { toast } from 'react-hot-toast' // ✅ Professional Toast Notification Import Kiya
+import { toast } from 'react-hot-toast'
+import ErrorCard from '../../components/ErrorCard'
 
 // Sub-component Import
 import TrackModal from './TrackModal'
@@ -69,13 +70,29 @@ const Interview = () => {
     const [startingInterview, setStartingInterview] = useState(false)
     const [showTrackModal, setShowTrackModal] = useState(false) 
     
-    const { report, getReportById, loading, getResumePdf } = useInterview()
+    const { report, getReportById, loading, getResumePdf, error } = useInterview()
 
     useEffect(() => {
         if (interviewId) {
             getReportById(interviewId)
         }
     }, [interviewId])
+
+    // Failed to load report — show error card instead of an infinite/blank loading screen
+    if (!loading && !report && error) {
+        return (
+            <main className='interview-page'>
+                <div className='interview-container' style={{ maxWidth: 600, margin: '4rem auto' }}>
+                    <ErrorCard
+                        error={error}
+                        message="Failed to load your interview plan. Please try again."
+                        onRetry={() => getReportById(interviewId)}
+                        retryLabel="Reload Plan"
+                    />
+                </div>
+            </main>
+        )
+    }
 
     if (loading || !report) {
         return (
@@ -95,11 +112,11 @@ const Interview = () => {
 
             const sessionId = data.session._id
             setShowTrackModal(false)
-            toast.success("Interview Session Started! All the best 👍") // ✅ Success Toast!
+            toast.success("Interview Session Started! All the best 👍")
             navigate(`/interview/session/${sessionId}`)
         } catch (err) {
             console.log(err)
-            toast.error("Failed to start mock interview ❌") // ✅ Alert ki jagah Toast!
+            toast.error("Failed to start mock interview ❌")
         } finally {
             setStartingInterview(false)
         }

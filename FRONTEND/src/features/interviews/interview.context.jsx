@@ -15,11 +15,13 @@ export const InterviewProvider = ({ children }) => {
     const [loading, setLoading] = useState(false)
     const [report, setReport] = useState(null)
     const [reports, setReports] = useState([])
+    const [error, setError] = useState(null)    // NEW
 
     const resetInterview = () => {
         setReport(null)
         setReports([])
         setLoading(false)
+        setError(null)                          // NEW
     }
 
     const value = {
@@ -29,6 +31,8 @@ export const InterviewProvider = ({ children }) => {
         setReport,
         reports,
         setReports,
+        error,                                  // NEW
+        setError,                               // NEW
         resetInterview
     }
 

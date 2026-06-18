@@ -1,13 +1,17 @@
+import axios from 'axios'
 import React, { useState, useEffect, useRef } from 'react'
 import "../../style/interviewSession.scss";
 import { useParams } from 'react-router'
-import { getInterviewSession, submitInterviewAnswer } from '../../services/interview.api'
 
-// Sub-Components Import
 import ProgressHeader from './ProgressHeader'
 import QuestionNavigator from './QuestionNavigator'
 import AnswerContainer from './AnswerContainer'
 import CompletionCard from './CompletionCard'
+import InterviewReplay from './InterviewReplay'
+import ResumeSessionPrompt from './ResumeSessionPrompt'
+import ErrorCard from '../../components/ErrorCard'
+
+import { useSessionAutoSave } from '../../hooks/useSessionAutoSave'
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
 
@@ -19,6 +23,22 @@ const InterviewSession = () => {
     const [loading, setLoading] = useState(false)
     const [timer, setTimer] = useState(0)
     const timerIntervalRef = useRef(null)
+
+    // Error states
+    const [fetchError, setFetchError] = useState(null)
+    const [submitError, setSubmitError] = useState(null)
+
+    // Resume prompt state
+    const [showResumePrompt, setShowResumePrompt] = useState(false)
+    const [pendingSavedData, setPendingSavedData] = useState(null)
+
+    // Auto-save hook
+    const { getSaved, clearSaved } = useSessionAutoSave(sessionId, {
+        answer,
+        timer,
+        currentStep: session?.currentStep ?? 0,
+        completed: session?.completed ?? false
+    })
 
     // Metrics & Counts Logic
     const wordCount = answer.trim() === "" ? 0 : answer.trim().split(/\s+/).length
@@ -33,14 +53,31 @@ const InterviewSession = () => {
     const completionPercent = session?.completed ? 100 : totalQuestions ? Math.round((questionsCompleted / totalQuestions) * 100) : 0
 
     // Fetch Session Effect
-    useEffect(() => {
-        const fetchSession = async () => {
-            try {
-                setLoading(true)
-                const data = await getInterviewSession(sessionId)
-                setSession(data.session)
-            } catch (err) { console.log(err) } finally { setLoading(false) }
+    const fetchSession = async () => {
+        try {
+            setLoading(true)
+            setFetchError(null)
+            const res = await axios.get(`http://localhost:3000/api/interview/session/${sessionId}`, { withCredentials: true })
+            const fetchedSession = res.data.session
+            setSession(fetchedSession)
+
+            // Check for saved progress only once, right after the first successful fetch
+            if (!fetchedSession.completed) {
+                const saved = getSaved()
+                if (saved) {
+                    setPendingSavedData(saved)
+                    setShowResumePrompt(true)
+                }
+            }
+        } catch (err) {
+            console.log(err)
+            setFetchError(err)
+        } finally {
+            setLoading(false)
         }
+    }
+
+    useEffect(() => {
         if (sessionId) fetchSession()
     }, [sessionId])
 
@@ -75,14 +112,20 @@ const InterviewSession = () => {
         if (window.currentRecognition) window.currentRecognition.stop()
         setIsListening(false)
     }
-    
+
     const submitAnswer = async () => {
         if (!answer.trim()) return
         try {
             setLoading(true)
-            const data = await submitInterviewAnswer({ sessionId: session._id, answer })
-            setSession(data.session); setAnswer("")
-        } catch (err) { console.log(err) } finally { setLoading(false) }
+            setSubmitError(null)
+            const res = await axios.post("http://localhost:3000/api/interview/session/submit-answer", { sessionId: session._id, answer }, { withCredentials: true })
+            setSession(res.data.session); setAnswer("")
+        } catch (err) {
+            console.log(err)
+            setSubmitError(err)
+        } finally {
+            setLoading(false)
+        }
     }
 
     useEffect(() => {
@@ -95,50 +138,103 @@ const InterviewSession = () => {
         return () => window.removeEventListener('keydown', handleKeyDown)
     }, [answer, loading])
 
+    // Resume prompt handlers
+    const handleResume = () => {
+        if (pendingSavedData) {
+            setAnswer(pendingSavedData.answer || "")
+            setTimer(pendingSavedData.timer || 0)
+        }
+        setShowResumePrompt(false)
+        setPendingSavedData(null)
+    }
+
+    const handleStartFresh = () => {
+        clearSaved()
+        setShowResumePrompt(false)
+        setPendingSavedData(null)
+    }
+
     const currentQuestion = session?.questions?.[session.currentStep]?.question
     const currentFeedback = session?.questions?.[session.currentStep - 1]?.feedback
 
+    // Failed to load session — full error view, no blank screen
+    if (fetchError && !session) {
+        return (
+            <div className='interview-page'>
+                <div className='interview-container' style={{ maxWidth: 600, margin: '4rem auto' }}>
+                    <ErrorCard
+                        error={fetchError}
+                        message="Failed to load your interview session. Please try again."
+                        onRetry={fetchSession}
+                        retryLabel="Reload Session"
+                    />
+                </div>
+            </div>
+        )
+    }
+
+    if (!session) return null
+
     return (
         <div className='interview-page'>
-            {session && (
-                <div className='interview-box'>
-                    {/* 1. Header & Timer */}
-                    <ProgressHeader currentStep={session.currentStep} totalQuestions={totalQuestions} timer={timer} />
 
-                    {/* 2. Navigation Pills */}
-                    <QuestionNavigator questions={session.questions} currentStep={session.currentStep} />
+            {/* Resume previous session prompt */}
+            {showResumePrompt && pendingSavedData && (
+                <ResumeSessionPrompt
+                    savedAt={pendingSavedData.savedAt}
+                    onResume={handleResume}
+                    onStartFresh={handleStartFresh}
+                />
+            )}
 
-                    {/* Question Card */}
-                    <div className='question-card'>
-                        <span className='question-label'>Interview Question</span>
-                        <h2 className='question'>{currentQuestion}</h2>
-                    </div>
-                                
-                    {/* 3. Input & Metrics Container */}
-                    <AnswerContainer 
-                        answer={answer} setAnswer={setAnswer} isListening={isListening}
-                        startListening={startListening} stopListening={stopListening}
-                        loading={loading} submitAnswer={submitAnswer} wordCount={wordCount}
-                        confidencePercent={confidencePercent} answerQuality={answerQuality} qualityClass={qualityClass}
-                    />
+            <div className='interview-container'>
 
-                    {/* Feedback Box */}
-                    {currentFeedback && (
-                        <div className='feedback-box'>
-                            <h4>AI Feedback</h4>
-                            <p>{currentFeedback}</p>
-                        </div>
-                    )}
-
-                    {/* 4. Completion Summary */}
-                    {session?.completed && (
-                        <CompletionCard 
+                {session.completed ? (
+                    /* ── COMPLETED VIEW ─────────────────────────────────── */
+                    <>
+                        <CompletionCard
                             questionsCompleted={questionsCompleted} totalQuestions={totalQuestions}
                             totalWords={totalWords} timeSpent={timeSpent} completionPercent={completionPercent}
                         />
-                    )}
-                </div>
-            )}
+                        <InterviewReplay questions={session.questions} />
+                    </>
+                ) : (
+                    /* ── ACTIVE INTERVIEW VIEW ──────────────────────────── */
+                    <>
+                        <ProgressHeader currentStep={session.currentStep} totalQuestions={totalQuestions} timer={timer} />
+                        <QuestionNavigator questions={session.questions} currentStep={session.currentStep} />
+
+                        <div className='question-card'>
+                            <span className='question-label'>Interview Question</span>
+                            <h2 className='question'>{currentQuestion}</h2>
+                        </div>
+
+                        <AnswerContainer
+                            answer={answer} setAnswer={setAnswer} isListening={isListening}
+                            startListening={startListening} stopListening={stopListening}
+                            loading={loading} submitAnswer={submitAnswer} wordCount={wordCount}
+                            confidencePercent={confidencePercent} answerQuality={answerQuality} qualityClass={qualityClass}
+                        />
+
+                        {submitError && (
+                            <ErrorCard
+                                error={submitError}
+                                message="Failed to submit your answer. Please try again."
+                                onRetry={() => { setSubmitError(null); submitAnswer() }}
+                                retryLabel="Retry Submit"
+                            />
+                        )}
+
+                        {currentFeedback && (
+                            <div className='feedback-box'>
+                                <h4>AI Feedback</h4>
+                                <p>{currentFeedback}</p>
+                            </div>
+                        )}
+                    </>
+                )}
+
+            </div>
         </div>
     )
 }

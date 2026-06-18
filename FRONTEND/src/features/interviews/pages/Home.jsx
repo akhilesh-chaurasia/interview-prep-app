@@ -3,10 +3,11 @@ import toast from 'react-hot-toast'
 import "../style/home.scss"
 import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate } from 'react-router'
+import ErrorCard from '../components/ErrorCard'
 
 const Home = () => {
 
-    const { loading, generateReport, reports } = useInterview()
+    const { loading, generateReport, reports, error } = useInterview()
 
     const [jobDescription, setJobDescription] = useState("")
     const [selfDescription, setSelfDescription] = useState("")
@@ -242,6 +243,16 @@ Example:
                     </div>
 
                 </div>
+
+                {/* ERROR CARD — shown when report generation fails */}
+                {error && (
+                    <ErrorCard
+                        error={error}
+                        message="Failed to generate your interview plan. The AI service may be busy — please try again."
+                        onRetry={handleGenerateReport}
+                        retryLabel="Retry Generation"
+                    />
+                )}
 
                 {/* FOOTER */}
                 <div className='interview-card__footer'>

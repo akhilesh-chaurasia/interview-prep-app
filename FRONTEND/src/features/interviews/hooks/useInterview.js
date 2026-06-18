@@ -22,7 +22,9 @@ export const useInterview = (interviewId) => {
         report,
         setReport,
         reports,
-        setReports
+        setReports,
+        error,           // NEW
+        setError         // NEW
     } = context
 
     // =========================
@@ -30,6 +32,7 @@ export const useInterview = (interviewId) => {
     // =========================
     const generateReport = async (data) => {
         setLoading(true)
+        setError(null)   // NEW
         try {
             const res = await generateInterviewReport(data)
 
@@ -40,6 +43,7 @@ export const useInterview = (interviewId) => {
 
         } catch (e) {
             console.log("generateReport error:", e)
+            setError(e)  // NEW
         } finally {
             setLoading(false)
         }
@@ -50,6 +54,7 @@ export const useInterview = (interviewId) => {
     // =========================
     const getReportById = async (id) => {
         setLoading(true)
+        setError(null)   // NEW
         try {
             const res = await getInterviewReportById(id)
 
@@ -59,6 +64,7 @@ export const useInterview = (interviewId) => {
 
         } catch (e) {
             console.log("getReportById error:", e)
+            setError(e)  // NEW
         } finally {
             setLoading(false)
         }
@@ -69,6 +75,7 @@ export const useInterview = (interviewId) => {
     // =========================
     const getReports = async () => {
         setLoading(true)
+        setError(null)   // NEW
         try {
             const res = await getAllInterviewReports()
 
@@ -78,6 +85,7 @@ export const useInterview = (interviewId) => {
 
         } catch (e) {
             console.log("getReports error:", e)
+            setError(e)  // NEW
         } finally {
             setLoading(false)
         }
@@ -142,6 +150,7 @@ export const useInterview = (interviewId) => {
         loading,
         report,
         reports,
+        error,           
         generateReport,
         getReportById,
         getReports,
