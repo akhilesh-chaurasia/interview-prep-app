@@ -102,8 +102,9 @@ async function submitAnswerController(req, res) {
          currentQuestionObj.idealAnswer = evaluation.idealAnswer
 
          currentQuestionObj.missingPoints = evaluation.missingPoints || []
+         currentQuestionObj.rubric = evaluation.rubric ||{}
 
-        if (session.currentStep >= MAX_QUESTIONS - 1) {
+        if (session.currentStep >= MAX_QUESTIONS-1) {
           session.completed = true
             await session.save()
  

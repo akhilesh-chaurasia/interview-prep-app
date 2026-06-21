@@ -216,34 +216,43 @@ async function evaluateAnswer({ question, answer }) {
 
     try {
 
-       const prompt = `
+     const prompt = `
 Evaluate this interview answer.
 
 Question:
-${question}
+${String(question)}
 
 Answer:
-${answer}
+${String(answer)}
 
-Give feedback in maximum 2-3 short lines.
+Give feedback in 2-3 short lines.
 
 Also generate:
-1. An ideal interview answer.
-2. 3 important missing points.
+1. Ideal interview answer
+2. 3 missing points
+
+Also score (0-10):
+- clarity
+- structure
+- depth
+- technicalAccuracy
+- communication
 
 Return ONLY valid JSON:
-
 {
-  "feedback": "...",
-  "shouldEnd": false,
-  "idealAnswer": "...",
-  "missingPoints": [
-    "...",
-    "...",
-    "..."
-  ]
+  "feedback": "",
+  "idealAnswer": "",
+  "missingPoints": ["", "", ""],
+  "rubric": {
+    "clarity": 0,
+    "structure": 0,
+    "depth": 0,
+    "technicalAccuracy": 0,
+    "communication": 0
+  },
+  "shouldEnd": false
 }
-` 
+`
  
 let response
 

@@ -23,9 +23,15 @@ const interviewSessionSchema = new mongoose.Schema({
             {
                 type:String
             }
-        ]
-    }
-
+        ],
+        rubric: {
+         clarity: Number,
+        structure: Number,
+        depth: Number,
+        technicalAccuracy: Number,
+        communication: Number
+       }
+      }
     ],
     currentStep: {
         type: Number,

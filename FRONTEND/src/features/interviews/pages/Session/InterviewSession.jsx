@@ -7,6 +7,7 @@ import ProgressHeader from './ProgressHeader'
 import QuestionNavigator from './QuestionNavigator'
 import AnswerContainer from './AnswerContainer'
 import CompletionCard from './CompletionCard'
+import PerformanceInsights from './PerformanceInsights'
 import InterviewReplay from './InterviewReplay'
 import ResumeSessionPrompt from './ResumeSessionPrompt'
 import ErrorCard from '../../components/ErrorCard'
@@ -187,7 +188,7 @@ const InterviewSession = () => {
                 />
             )}
 
-            <div className='interview-container'>
+            <div className={`interview-container ${session.completed ? 'interview-container--wide' : ''}`}>
 
                 {session.completed ? (
                     /* ── COMPLETED VIEW ─────────────────────────────────── */
@@ -196,6 +197,7 @@ const InterviewSession = () => {
                             questionsCompleted={questionsCompleted} totalQuestions={totalQuestions}
                             totalWords={totalWords} timeSpent={timeSpent} completionPercent={completionPercent}
                         />
+                        <PerformanceInsights questions={session.questions} />
                         <InterviewReplay questions={session.questions} />
                     </>
                 ) : (
