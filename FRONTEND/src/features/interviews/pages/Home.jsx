@@ -2,33 +2,81 @@ import React, { useState, useRef } from 'react'
 import toast from 'react-hot-toast'
 import "../style/home.scss"
 import { useInterview } from '../hooks/useInterview.js'
+import { useNotifications } from '../../notifications/notifications.context.jsx'
 import { useNavigate } from 'react-router'
 import ErrorCard from '../components/ErrorCard'
 
 const Home = () => {
 
     const { loading, generateReport, reports, error } = useInterview()
+    const { addNotification } = useNotifications()
 
     const [jobDescription, setJobDescription] = useState("")
     const [selfDescription, setSelfDescription] = useState("")
+    const [selectedFile, setSelectedFile] = useState(null)
+    const [isDragOver, setIsDragOver] = useState(false)
 
     const resumeInputRef = useRef()
+    const dropzoneRef = useRef()
 
     const navigate = useNavigate()
 
+    const handleFileSelect = (e) => {
+        const file = e.target.files[0]
+        if (file) {
+            setSelectedFile(file)
+        }
+    }
+
+    const handleDragOver = (e) => {
+        e.preventDefault()
+        setIsDragOver(true)
+    }
+
+    const handleDragLeave = () => {
+        setIsDragOver(false)
+    }
+
+    const handleDrop = (e) => {
+        e.preventDefault()
+        setIsDragOver(false)
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            setSelectedFile(e.dataTransfer.files[0])
+        }
+    }
+
     const handleGenerateReport = async () => {
 
-        const resumeFile = resumeInputRef.current.files[0]
+        const resumeFile = selectedFile
 
-        const data = await generateReport({
-            jobDescription,
-            selfDescription,
-            resumeFile
-        })
+        try {
+            const data = await generateReport({
+                jobDescription,
+                selfDescription,
+                resumeFile
+            })
 
-        if (data && data._id) {
-            navigate(`/interview/${data._id}`)
-        } else {
+            if (data && data._id) {
+                addNotification({
+                    type: 'success',
+                    title: 'Interview Plan Generated!',
+                    message: 'Your personalized interview plan is ready'
+                })
+                navigate(`/interview/${data._id}`)
+            } else {
+                addNotification({
+                    type: 'error',
+                    title: 'Generation Failed',
+                    message: 'Failed to generate your interview plan'
+                })
+                toast.error("Failed to generate report")
+            }
+        } catch (err) {
+            addNotification({
+                type: 'error',
+                title: 'Generation Failed',
+                message: err.message || 'Failed to generate your interview plan'
+            })
             toast.error("Failed to generate report")
         }
     }
@@ -172,19 +220,49 @@ Example:
 
                             </label>
 
-                            <label className='dropzone' htmlFor='resume'>
+                            <label 
+                                ref={dropzoneRef}
+                                className={`dropzone ${isDragOver ? 'dropzone--dragover' : ''}`} 
+                                htmlFor='resume'
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                            >
+                                {selectedFile ? (
+                                    <div className='dropzone__file'>
+                                        <span className='dropzone__icon'>📄</span>
+                                        <div className='dropzone__file-info'>
+                                            <p className='dropzone__file-name'>{selectedFile.name}</p>
+                                            <p className='dropzone__file-size'>
+                                                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                                            </p>
+                                        </div>
+                                        <button 
+                                            type='button' 
+                                            onClick={(e) => { 
+                                                e.preventDefault() 
+                                                setSelectedFile(null) 
+                                            }} 
+                                            className='dropzone__remove'
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <span className='dropzone__icon'>
+                                            📤
+                                        </span>
 
-                                <span className='dropzone__icon'>
-                                    📤
-                                </span>
+                                        <p className='dropzone__title'>
+                                            Click to upload or drag & drop
+                                        </p>
 
-                                <p className='dropzone__title'>
-                                    Click to upload or drag & drop
-                                </p>
-
-                                <p className='dropzone__subtitle'>
-                                    PDF or DOCX (Max 5MB)
-                                </p>
+                                        <p className='dropzone__subtitle'>
+                                            PDF or DOCX (Max 5MB)
+                                        </p>
+                                    </>
+                                )}
 
                                 <input
                                     ref={resumeInputRef}
@@ -193,6 +271,7 @@ Example:
                                     id='resume'
                                     name='resume'
                                     accept='.pdf,.docx'
+                                    onChange={handleFileSelect}
                                 />
 
                             </label>
@@ -263,7 +342,7 @@ Example:
 
                     <button
                         onClick={handleGenerateReport}
-                        className='generate-btn'
+                        className='btn btn--primary btn--lg'
                     >
                         ✨ Generate AI Interview Plan
                     </button>

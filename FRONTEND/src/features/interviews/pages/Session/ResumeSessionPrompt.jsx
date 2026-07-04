@@ -18,10 +18,10 @@ const ResumeSessionPrompt = ({ savedAt, onResume, onStartFresh }) => (
                 You have unsaved progress from <strong>{timeAgo(savedAt)}</strong>.
             </p>
             <div className='resume-prompt__actions'>
-                <button className='resume-prompt__btn resume-prompt__btn--primary' onClick={onResume}>
+                <button type="button" className='btn btn--secondary' aria-label="Resume your previous session" onClick={onResume}>
                     Resume Session
                 </button>
-                <button className='resume-prompt__btn resume-prompt__btn--ghost' onClick={onStartFresh}>
+                <button type="button" className='btn btn--danger' aria-label="Start a fresh interview session" onClick={onStartFresh}>
                     Start Fresh
                 </button>
             </div>

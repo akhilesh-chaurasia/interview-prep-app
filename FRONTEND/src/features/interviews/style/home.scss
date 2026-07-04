@@ -398,6 +398,11 @@ body {
 
     transition: all 0.25s ease;
 
+    &--dragover {
+        border-color: $accent;
+        background: rgba(255,45,120,0.08);
+    }
+
     &:hover {
         transform: translateY(-3px);
 
@@ -424,6 +429,49 @@ body {
 
         color: $text-muted;
         font-size: 0.8rem;
+    }
+
+    &__file {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
+
+        &-info {
+            flex: 1;
+            text-align: left;
+        }
+
+        &-name {
+            margin: 0;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        &-size {
+            margin: 0;
+            color: $text-muted;
+            font-size: 0.8rem;
+        }
+    }
+
+    &__remove {
+        background: rgba(255,255,255,0.1);
+        border: none;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: $text-muted;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: rgba(255,45,120,0.2);
+            color: $accent;
+        }
     }
 }
 

@@ -390,14 +390,14 @@ body {
 
     &__title {
         margin: 0 0 0.5rem;
-        color: white;
+        color: var(--text-primary);
         font-size: 1.1rem;
         font-weight: 700;
     }
 
     &__message {
         margin: 0 0 1.4rem;
-        color: $text-muted;
+        color: var(--text-secondary);
         font-size: 0.92rem;
         line-height: 1.6;
         max-width: 400px;

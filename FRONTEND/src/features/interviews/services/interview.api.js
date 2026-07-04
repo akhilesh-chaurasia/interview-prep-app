@@ -54,6 +54,7 @@ export const generateResumePdf = async ({ interviewReportId }) => {
  * @description Service to start a new mock interview session for a given interview report and track.
  */
 export const startInterviewSession = async ({ interviewReportId, track }) => {
+    
     const response = await api.post("/api/interview/session/start", {
         interviewReportId,
         track
@@ -82,5 +83,25 @@ export const submitInterviewAnswer = async ({ sessionId, answer }) => {
         answer
     })
 
+    return response.data
+}
+
+/**
+ * @description Service to update the current question step in an interview session.
+ */
+export const updateInterviewSessionProgress = async ({ sessionId, currentStep }) => {
+    const response = await api.post("/api/interview/session/update-progress", {
+        sessionId,
+        currentStep
+    })
+
+    return response.data
+}
+
+/**
+ * @description Service to get all interview sessions for the logged in user.
+ */
+export const getAllInterviewSessions = async () => {
+    const response = await api.get("/api/interview/session/")
     return response.data
 }

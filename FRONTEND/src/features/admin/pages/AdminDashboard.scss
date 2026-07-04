@@ -1,0 +1,211 @@
+.admin-dashboard {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  &__title {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    color: var(--text-primary);
+  }
+
+  &__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  &__users {
+    margin-bottom: 3rem;
+    h2 {
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+  }
+
+  &__recent {
+    margin-bottom: 2rem;
+    h2 {
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+  }
+
+  &__loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+  }
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+
+  h3 {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0 0 0.5rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin: 0;
+  }
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+
+  thead {
+    background: var(--bg-secondary);
+
+    th {
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-primary);
+      border-bottom: 2px solid var(--border-color);
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--border-color);
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background: var(--bg-secondary);
+      }
+
+      td {
+        padding: 1rem;
+        color: var(--text-secondary);
+      }
+    }
+  }
+}
+
+.role-select {
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent-color);
+  }
+}
+
+.delete-btn {
+  padding: 0.5rem 1rem;
+  background: var(--danger-color, #ef4444);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+
+  &:hover {
+    background: #dc2626;
+  }
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+
+  &-btn {
+    padding: 0.5rem 1rem;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+
+    &:disabled {
+      background: var(--text-secondary);
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
+
+  &-info {
+    color: var(--text-secondary);
+  }
+}
+
+.recent-users-list {
+  list-style: none;
+  padding: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.recent-user-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.recent-user-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.recent-user-email {
+  color: var(--text-secondary);
+  margin-left: 1rem;
+}
+
+.recent-user-role {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+
+  &.role-admin {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+  }
+
+  &.role-user {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+  }
+}

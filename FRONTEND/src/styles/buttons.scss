@@ -1,0 +1,190 @@
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* GLOBAL BUTTON SYSTEM */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* ── BASE BUTTON STYLES ─────────────────────────────────────────────────── */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    white-space: nowrap;
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    &:focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: 2px;
+    }
+}
+
+/* ── BUTTON VARIANTS ───────────────────────────────────────────────────── */
+
+/* Primary Button */
+.btn.btn--primary {
+    background-color: #3b82f6;
+    color: white;
+    border: 1px solid #3b82f6;
+
+    &:hover:not(:disabled) {
+        background-color: #2563eb;
+        border-color: #2563eb;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    &:active:not(:disabled) {
+        background-color: #1d4ed8;
+        border-color: #1d4ed8;
+    }
+}
+
+/* Secondary Button */
+.btn.btn--secondary {
+    background-color: transparent;
+    color: #3b82f6;
+    border: 1px solid #3b82f6;
+
+    &:hover:not(:disabled) {
+        background-color: #eff6ff;
+        border-color: #2563eb;
+    }
+
+    &:active:not(:disabled) {
+        background-color: #dbeafe;
+        border-color: #1d4ed8;
+    }
+}
+
+/* Success Button */
+.btn.btn--success {
+    background-color: #10b981;
+    color: white;
+    border: 1px solid #10b981;
+
+    &:hover:not(:disabled) {
+        background-color: #059669;
+        border-color: #059669;
+        box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+    }
+
+    &:active:not(:disabled) {
+        background-color: #047857;
+        border-color: #047857;
+    }
+}
+
+/* Danger Button */
+.btn.btn--danger {
+    background-color: #ef4444;
+    color: white;
+    border: 1px solid #ef4444;
+
+    &:hover:not(:disabled) {
+        background-color: #dc2626;
+        border-color: #dc2626;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
+
+    &:active:not(:disabled) {
+        background-color: #b91c1c;
+        border-color: #b91c1c;
+    }
+}
+
+/* Ghost Button (Minimal) */
+.btn.btn--ghost {
+    background-color: transparent;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+
+    &:hover:not(:disabled) {
+        background-color: #f9fafb;
+        border-color: #d1d5db;
+        color: #374151;
+    }
+
+    &:active:not(:disabled) {
+        background-color: #f3f4f6;
+        border-color: #9ca3af;
+    }
+}
+
+/* ── SIZE VARIANTS ──────────────────────────────────────────────────────── */
+
+.btn.btn--sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.btn.btn--lg {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+}
+
+.btn.btn--xl {
+    padding: 1.25rem 2.5rem;
+    font-size: 1.25rem;
+}
+
+/* ── BUTTON WITH ICON LOADER ─────────────────────────────────────────────── */
+
+.btn-loader {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ── FULL WIDTH BUTTON ──────────────────────────────────────────────────── */
+
+.btn.btn--full {
+    width: 100%;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* CTA SECTION STYLES */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+.completion-cta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f0f9ff 0%, #f0fdf4 100%);
+    border-radius: 0.5rem;
+    margin: 2rem 0;
+    border: 1px solid #e0f2fe;
+}
+
+.completion-cta__title {
+    grid-column: 1 / -1;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.completion-cta .btn {
+    justify-content: center;
+    width: 100%;
+}

@@ -10,6 +10,10 @@ const interviewSessionSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "InterviewReport"
     },
+    track: {
+        type: String,
+        default: "MERN"
+    },
     questions:[
     {
         question:{
@@ -43,5 +47,9 @@ const interviewSessionSchema = new mongoose.Schema({
     }
 
 } , {timestamps: true})
+
+// Add indexes for faster queries
+interviewSessionSchema.index({ user: 1 });
+interviewSessionSchema.index({ user: 1, completed: 1 });
 
 module.exports = mongoose.model("InterviewSession" , interviewSessionSchema); 

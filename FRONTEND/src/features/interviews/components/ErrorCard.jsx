@@ -16,7 +16,7 @@ const ErrorCard = ({ error, message, onRetry, retryLabel = "Try Again" }) => (
         <h3 className='error-card__title'>Something went wrong</h3>
         <p className='error-card__message'>{message ?? getMessage(error)}</p>
         {onRetry && (
-            <button className='error-card__retry' onClick={onRetry}>
+            <button type="button" className='btn btn--primary' aria-label={retryLabel} onClick={onRetry}>
                 {retryLabel}
             </button>
         )}

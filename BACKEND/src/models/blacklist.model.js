@@ -9,6 +9,9 @@ const blacklistTokenSchema = new mongoose.Schema({
     timestamps: true
 })
 
+// Add TTL index to automatically expire documents after 1 day
+blacklistTokenSchema.index({ createdAt: 1 }, { expireAfterSeconds: 86400 })
+
 const tokenBlacklistModel = mongoose.model("blacklistTokens",blacklistTokenSchema);
 
 module.exports = tokenBlacklistModel

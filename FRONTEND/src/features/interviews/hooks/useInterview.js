@@ -2,15 +2,24 @@ import {
     getAllInterviewReports,
     generateInterviewReport,
     getInterviewReportById,
-    generateResumePdf
+    generateResumePdf,
+    getAllInterviewSessions
 } from "../services/interview.api"
 
-import { useContext, useEffect } from "react"
+import { useContext, useEffect, useRef, useCallback } from "react"
 import { InterviewContext } from "../interview.context"
+
+// Cache for sessions to prevent repeated API calls
+const sessionsCache = {
+    data: null,
+    timestamp: 0,
+    expiry: 5 * 60 * 1000 // 5 minutes cache
+}
 
 export const useInterview = (interviewId) => {
 
     const context = useContext(InterviewContext)
+    const hasFetchedSessions = useRef(false)
 
     if (!context) {
         throw new Error("useInterview must be used within InterviewProvider")
@@ -23,16 +32,18 @@ export const useInterview = (interviewId) => {
         setReport,
         reports,
         setReports,
-        error,           // NEW
-        setError         // NEW
+        sessions,
+        setSessions,
+        error,
+        setError
     } = context
 
     // =========================
     // Generate Interview Report
     // =========================
-    const generateReport = async (data) => {
+    const generateReport = useCallback(async (data) => {
         setLoading(true)
-        setError(null)   // NEW
+        setError(null)
         try {
             const res = await generateInterviewReport(data)
 
@@ -43,18 +54,18 @@ export const useInterview = (interviewId) => {
 
         } catch (e) {
             console.log("generateReport error:", e)
-            setError(e)  // NEW
+            setError(e)
         } finally {
             setLoading(false)
         }
-    }
+    }, [setLoading, setError, setReport])
 
     // =========================
     // Get Report By ID
     // =========================
-    const getReportById = async (id) => {
+    const getReportById = useCallback(async (id) => {
         setLoading(true)
-        setError(null)   // NEW
+        setError(null)
         try {
             const res = await getInterviewReportById(id)
 
@@ -64,18 +75,18 @@ export const useInterview = (interviewId) => {
 
         } catch (e) {
             console.log("getReportById error:", e)
-            setError(e)  // NEW
+            setError(e)
         } finally {
             setLoading(false)
         }
-    }
+    }, [setLoading, setError, setReport])
 
     // =========================
     // Get All Reports
     // =========================
-    const getReports = async () => {
+    const getReports = useCallback(async () => {
         setLoading(true)
-        setError(null)   // NEW
+        setError(null)
         try {
             const res = await getAllInterviewReports()
 
@@ -85,16 +96,16 @@ export const useInterview = (interviewId) => {
 
         } catch (e) {
             console.log("getReports error:", e)
-            setError(e)  // NEW
+            setError(e)
         } finally {
             setLoading(false)
         }
-    }
+    }, [setLoading, setError, setReports])
 
     // =========================
     // Download Resume PDF
     // =========================
-    const getResumePdf = async (interviewReportId) => {
+    const getResumePdf = useCallback(async (interviewReportId) => {
         setLoading(true)
 
         try {
@@ -118,7 +129,36 @@ export const useInterview = (interviewId) => {
         } finally {
             setLoading(false)
         }
-    }
+    }, [setLoading])
+
+    // =========================
+    // Get All Interview Sessions (with caching)
+    // =========================
+    const getSessions = useCallback(async (forceRefresh = false) => {
+        // Check cache first
+        const now = Date.now()
+        if (!forceRefresh && sessionsCache.data && (now - sessionsCache.timestamp) < sessionsCache.expiry) {
+            setSessions(sessionsCache.data)
+            return
+        }
+
+        setLoading(true)
+        setError(null)
+        try {
+            const res = await getAllInterviewSessions()
+            if (res?.sessions) {
+                setSessions(res.sessions)
+                // Update cache
+                sessionsCache.data = res.sessions
+                sessionsCache.timestamp = now
+            }
+        } catch (e) {
+            console.log("getSessions error:", e)
+            setError(e)
+        } finally {
+            setLoading(false)
+        }
+    }, [setLoading, setError, setSessions])
 
     // =========================
     // Auto Fetch Logic
@@ -140,20 +180,28 @@ export const useInterview = (interviewId) => {
                     await getReports()
                 }
             }
+
+            // Fetch sessions only once per component mount
+            if (!hasFetchedSessions.current) {
+                hasFetchedSessions.current = true
+                await getSessions()
+            }
         }
 
         loadData()
 
-    }, [interviewId])
+    }, [interviewId, report?._id, reports?.length])
 
     return {
         loading,
         report,
         reports,
-        error,           
+        sessions,
+        error,
         generateReport,
         getReportById,
         getReports,
-        getResumePdf
+        getResumePdf,
+        getSessions
     }
 }

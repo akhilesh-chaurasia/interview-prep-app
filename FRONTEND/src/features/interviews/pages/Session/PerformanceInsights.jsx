@@ -45,8 +45,11 @@ const PerformanceInsights = ({ questions }) => {
     // Rank metrics high to low
     const ranked = [...validAverages].sort((a, b) => b.value - a.value)
 
+    // Pick top 2 as strengths, then pick the weakest 2 from the REMAINING
+    // metrics so a metric never shows up in both lists at once.
     const strengths = ranked.slice(0, 2)
-    const improvements = ranked.slice(-2).reverse()
+    const remaining = ranked.slice(2)
+    const improvements = remaining.slice(-2).reverse()
 
     const scoreColor = overallScore >= 80 ? '#3fb950' : overallScore >= 60 ? '#f5a623' : '#ff6b6b'
     const scoreLabel = overallScore >= 80 ? 'Excellent' : overallScore >= 60 ? 'Good' : 'Needs Work'
@@ -128,15 +131,19 @@ const PerformanceInsights = ({ questions }) => {
                 {/* Areas To Improve */}
                 <div className='insight-block'>
                     <span className='insight-block__label'>Areas To Improve</span>
-                    <ul className='insight-list'>
-                        {improvements.map(({ key, value }) => (
-                            <li key={key} className='insight-list__item insight-list__item--negative'>
-                                <span className='insight-list__icon'>{RUBRIC_META[key].icon}</span>
-                                <span className='insight-list__text'>{RUBRIC_META[key].label}</span>
-                                <span className='insight-list__score'>{value.toFixed(1)}/10</span>
-                            </li>
-                        ))}
-                    </ul>
+                    {improvements.length > 0 ? (
+                        <ul className='insight-list'>
+                            {improvements.map(({ key, value }) => (
+                                <li key={key} className='insight-list__item insight-list__item--negative'>
+                                    <span className='insight-list__icon'>{RUBRIC_META[key].icon}</span>
+                                    <span className='insight-list__text'>{RUBRIC_META[key].label}</span>
+                                    <span className='insight-list__score'>{value.toFixed(1)}/10</span>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p className='insight-block__empty'>Not enough distinct metrics yet to highlight separate improvement areas.</p>
+                    )}
                 </div>
 
             </div>

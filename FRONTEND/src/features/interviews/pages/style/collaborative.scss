@@ -1,0 +1,437 @@
+.collaborative-room-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+}
+
+.collaborative-room-card {
+  background: var(--bg-card);
+  border-radius: 1rem;
+  padding: 2.5rem;
+  box-shadow: var(--shadow-lg);
+  max-width: 900px;
+  width: 100%;
+
+  h1 {
+    font-size: 2.25rem;
+    color: var(--text-primary);
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+  }
+}
+
+.instructions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+
+  .instruction-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+
+    .instruction-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    strong {
+      color: var(--text-primary);
+    }
+
+    div {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+  }
+}
+
+.room-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.create-room-section,
+.join-room-section {
+  h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      }
+    }
+  }
+
+  button {
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary {
+    background: var(--primary-color);
+    color: white;
+
+    &:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+  }
+
+  .btn-secondary {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+
+    &:hover {
+      background: var(--bg-tertiary);
+      transform: translateY(-2px);
+    }
+  }
+}
+
+.collaborative-session-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+}
+
+.collaborative-session-header {
+  background: var(--card-bg);
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+
+  .header-left {
+    h1 {
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .room-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 0.25rem;
+
+      .room-code {
+        background: var(--bg-secondary);
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.5rem;
+        font-family: monospace;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        cursor: pointer;
+
+        &:hover {
+          background: var(--bg-tertiary);
+        }
+      }
+
+      .copy-btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 0.25rem;
+        cursor: pointer;
+
+        &:hover {
+          background: var(--primary-hover);
+        }
+      }
+    }
+  }
+
+  .participants {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .participant {
+      background: var(--success-color);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+  }
+
+  .leave-btn {
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+
+    &:hover {
+      background: #dc2626;
+    }
+  }
+}
+
+.collaborative-session-content {
+  display: flex;
+  flex: 1;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.interview-panel {
+  flex: 1;
+  background: var(--card-bg);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  h2 {
+    font-size: 1.25rem;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .questions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .question-card {
+    background: var(--bg-secondary);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-color: var(--primary-color);
+      transform: translateY(-2px);
+    }
+
+    &.active {
+      border-color: var(--primary-color);
+      background: var(--bg-tertiary);
+    }
+
+    .question-title {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .question-difficulty {
+      font-size: 0.75rem;
+      padding: 0.125rem 0.5rem;
+      border-radius: 0.25rem;
+      display: inline-block;
+      font-weight: 500;
+
+      &.easy {
+        background: var(--success-color);
+        color: white;
+      }
+
+      &.medium {
+        background: #f59e0b;
+        color: white;
+      }
+
+      &.hard {
+        background: var(--danger-color);
+        color: white;
+      }
+    }
+  }
+}
+
+.chat-panel {
+  width: 400px;
+  background: var(--card-bg);
+  border-radius: 1rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+
+  .chat-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+
+    h2 {
+      font-size: 1.125rem;
+      color: var(--text-primary);
+      margin: 0;
+    }
+  }
+
+  .chat-messages {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .chat-message {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    .message-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      .username {
+        font-weight: 600;
+        color: var(--primary-color);
+        font-size: 0.875rem;
+      }
+
+      .timestamp {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+      }
+    }
+
+    .message-text {
+      background: var(--bg-secondary);
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.5rem;
+      color: var(--text-primary);
+      word-wrap: break-word;
+    }
+
+    &.own {
+      .message-text {
+        background: var(--primary-color);
+        color: white;
+      }
+    }
+  }
+
+  .chat-input-container {
+    padding: 1rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 0.5rem;
+
+    .chat-input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-size: 1rem;
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary-color);
+      }
+    }
+
+    .send-btn {
+      padding: 0.75rem 1.5rem;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: 500;
+
+      &:hover {
+        background: var(--primary-hover);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+.system-message {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  padding: 0.5rem;
+}

@@ -1,0 +1,101 @@
+.my-sessions-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+
+  h2 {
+    color: var(--text-primary);
+  }
+}
+
+.my-sessions-container {
+  max-width: 800px;
+}
+
+.my-sessions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+
+  h1 {
+    margin: 0;
+    color: var(--text-primary);
+  }
+
+  .btn {
+    padding: 0.75rem 1.5rem;
+  }
+}
+
+.my-sessions-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+
+  h3 {
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.my-sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.my-session-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-color);
+    box-shadow: var(--shadow-md);
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+
+    h3 {
+      margin: 0;
+      color: var(--text-primary);
+    }
+  }
+
+  &__status {
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+
+    &.completed {
+      background: rgba(74, 222, 128, 0.15);
+      color: #4ade80;
+    }
+
+    &.in-progress {
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
+    }
+  }
+
+  &__details {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+}

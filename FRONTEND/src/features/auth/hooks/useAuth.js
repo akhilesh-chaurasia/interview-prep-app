@@ -1,9 +1,11 @@
-import { useContext , useEffect } from "react";
+import { useContext } from "react";
 import { AuthContext } from "../auth.context";
-import {login, register, logout, getMe} from "../services/auth.api"
+import { useNotifications } from "../../notifications/notifications.context.jsx";
+import {login, register, logout} from "../services/auth.api"
 
 export const useAuth = ()=>{
     const context = useContext(AuthContext)
+    const { addNotification } = useNotifications()
 
     if (!context) {
         throw new Error("useAuth must be used within AuthProvider")
@@ -16,8 +18,17 @@ export const useAuth = ()=>{
         try{
             const data = await login({email , password})
             setUser(data.user)
+            addNotification({
+                type: 'success',
+                title: 'Welcome Back!',
+                message: `Hi ${data.user.username}, you've logged in successfully`
+            })
         } catch(err){
-            console.log(err.message)
+            addNotification({
+                type: 'error',
+                title: 'Login Failed',
+                message: err.message || 'Invalid credentials'
+            })
         } finally{
             setLoading(false)
         }   
@@ -28,8 +39,17 @@ export const useAuth = ()=>{
         try{
             const data = await register({username , email, password})
             setUser(data.user)
+            addNotification({
+                type: 'success',
+                title: 'Account Created!',
+                message: `Welcome ${username}! Check your email for verification`
+            })
         } catch(err){
-            console.log(err.message)
+            addNotification({
+                type: 'error',
+                title: 'Registration Failed',
+                message: err.message || 'Could not create account'
+            })
         } finally{
             setLoading(false)
         }
@@ -47,21 +67,13 @@ export const useAuth = ()=>{
         }
     }
 
-    useEffect(()=>{
-        const getAndSetUser = async()=>{
-            setLoading(true)
-            try{
-                const data = await getMe()
-                setUser(data.user)
-            } catch(err){
-                setUser(null)
-            } finally{
-                setLoading(false)
-            }
-        }
-
-        getAndSetUser()
-    },[setUser, setLoading])
-
-    return {user, loading, handleRegister, handleLogin , handleLogout}
+   return {
+    user,
+    setUser,
+    loading,
+    setLoading,
+    handleRegister,
+    handleLogin,
+    handleLogout
+   }
 }

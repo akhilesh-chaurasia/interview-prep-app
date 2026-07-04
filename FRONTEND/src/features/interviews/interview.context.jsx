@@ -15,11 +15,13 @@ export const InterviewProvider = ({ children }) => {
     const [loading, setLoading] = useState(false)
     const [report, setReport] = useState(null)
     const [reports, setReports] = useState([])
+    const [sessions, setSessions] = useState([])
     const [error, setError] = useState(null)    // NEW
 
     const resetInterview = () => {
         setReport(null)
         setReports([])
+        setSessions([])
         setLoading(false)
         setError(null)                          // NEW
     }
@@ -31,6 +33,8 @@ export const InterviewProvider = ({ children }) => {
         setReport,
         reports,
         setReports,
+        sessions,
+        setSessions,
         error,                                  // NEW
         setError,                               // NEW
         resetInterview

@@ -67,7 +67,7 @@ const preparationPlanSchema = new mongoose.Schema({
 const interviewReportSchema = new mongoose.Schema({
     jobDescription:{
         type:String,
-        required:[true ,"Job Description is required"]
+        required:[true , "Job description is required"]
     },
     resume:{
         type:String
@@ -96,6 +96,9 @@ const interviewReportSchema = new mongoose.Schema({
 },{
     timestamps:true
 })
+
+// Add index for faster user-specific queries
+interviewReportSchema.index({ user: 1 });
 
 const interviewReportModel = mongoose.model("InterviewReport", interviewReportSchema);
 module.exports = interviewReportModel;

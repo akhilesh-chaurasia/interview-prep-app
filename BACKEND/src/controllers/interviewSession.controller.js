@@ -69,7 +69,7 @@ async function submitAnswerController(req, res) {
             })
         }
 
-        const session = await interviewSession.findById(sessionId)
+        const session = await interviewSession.findOne({ _id: sessionId, user: req.user.id })
 
         if (!session) {
             return res.status(404).json({
@@ -143,13 +143,45 @@ async function submitAnswerController(req, res) {
     }
 }
 
+async function updateSessionProgressController(req, res) {
+    try {
+        const { sessionId, currentStep } = req.body
+
+        if (!sessionId || currentStep === undefined || currentStep === null) {
+            return res.status(400).json({
+                message: "sessionId and currentStep are required"
+            })
+        }
+
+        const session = await interviewSession.findOne({ _id: sessionId, user: req.user.id })
+
+        if (!session) {
+            return res.status(404).json({
+                message: "Session not found"
+            })
+        }
+
+        const nextStep = Math.max(0, Math.min(currentStep, (session.questions?.length || 1) - 1))
+        session.currentStep = nextStep
+        await session.save()
+
+        return res.status(200).json({
+            message: "Session progress updated",
+            session
+        })
+    } catch (err) {
+        console.log(err)
+        return res.status(500).json({ message: err.message })
+    }
+}
+
 async function getSessionController(req, res) {
 
     try {
 
         const { sessionId } = req.params
 
-        const session = await interviewSession.findById(sessionId)
+        const session = await interviewSession.findOne({ _id: sessionId, user: req.user.id })
 
         if (!session) {
             return res.status(404).json({
@@ -171,7 +203,19 @@ async function getSessionController(req, res) {
     }
 }
 
+async function getAllSessionsController(req, res) {
+    try {
+        const sessions = await interviewSession.find({ user: req.user.id }).sort({ createdAt: -1 })
+        return res.status(200).json({ sessions })
+    } catch (err) {
+        console.log(err)
+        return res.status(500).json({ message: err.message })
+    }
+}
+
 module.exports = {startInterviewSessionController ,
                    submitAnswerController ,
-                   getSessionController
-                }
+                   updateSessionProgressController,
+                   getSessionController,
+                   getAllSessionsController
+}
