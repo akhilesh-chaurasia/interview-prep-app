@@ -1,21 +1,21 @@
 node_modules/
-
 **/node_modules/
 
 .env
-
 **/.env
 
 .next/
-
 dist/
-
 build/
-
 coverage/
-
 *.zip
 
+# Root study guides, PDFs, and Question Banks
+/*.html
+/*.pdf
+ADMIN_PANEL_GUIDE.md
 INTERVIEW_40_QUESTIONS.md
-
 INTERVIEW_PREPARATION_GUIDE.md
+CAPGEMINI*
+YT_GENAI*
+questions_data.js
