@@ -15,11 +15,18 @@ const start = async () => {
         // Create HTTP server for socket.io
         const server = http.createServer(app)
 
-        // Set up Socket.IO server
+        // Set up Socket.IO server with proper CORS
+        const allowedOrigins = [
+          "http://localhost:5173",
+          "http://localhost:5174",
+          env.FRONTEND_URL
+        ].filter(Boolean)
+
         const io = new Server(server, {
           cors: {
-            origin: "*",
-            methods: ["GET", "POST"]
+            origin: allowedOrigins.length > 0 ? allowedOrigins : "*",
+            methods: ["GET", "POST"],
+            credentials: true
           }
         })
 
@@ -34,8 +41,11 @@ const start = async () => {
               host: data.username,
               hostId: socket.id,
               participants: [data.username],
-              messages: []
+              messages: [],
+              currentQuestion: null
             })
+            socket.data.roomCode = roomCode
+            socket.data.username = data.username
             socket.join(roomCode)
             socket.emit("room-created", { roomCode })
             console.log(`Room created: ${roomCode} by ${data.username}`)
@@ -48,6 +58,8 @@ const start = async () => {
               if (!room.participants.includes(data.username)) {
                 room.participants.push(data.username)
               }
+              socket.data.roomCode = data.roomCode
+              socket.data.username = data.username
               socket.join(data.roomCode)
               io.to(data.roomCode).emit("user-joined", { 
                 username: data.username, 
@@ -57,6 +69,18 @@ const start = async () => {
               console.log(`${data.username} joined room ${data.roomCode}`)
             } else {
               socket.emit("room-error", { message: "Room not found!" })
+            }
+          })
+
+          // Select question (synchronize with peers in the room)
+          socket.on("select-question", (data) => {
+            const room = rooms.get(data.roomCode)
+            if (room) {
+              room.currentQuestion = data.question
+              io.to(data.roomCode).emit("question-selected", { 
+                question: data.question,
+                selectedBy: data.username 
+              })
             }
           })
 
@@ -74,9 +98,23 @@ const start = async () => {
             }
           })
 
-          // Disconnect
+          // Disconnect & cleanup
           socket.on("disconnect", () => {
             console.log("User disconnected:", socket.id)
+            const { roomCode, username } = socket.data || {}
+            if (roomCode && rooms.has(roomCode)) {
+              const room = rooms.get(roomCode)
+              room.participants = room.participants.filter(p => p !== username)
+              if (room.participants.length === 0) {
+                rooms.delete(roomCode)
+                console.log(`Room ${roomCode} cleaned up (empty)`)
+              } else {
+                io.to(roomCode).emit("user-left", { 
+                  username, 
+                  participants: room.participants 
+                })
+              }
+            }
           })
         })
 

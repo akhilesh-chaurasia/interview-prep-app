@@ -1,0 +1,211 @@
+.dsa-code-sandbox {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: #1e1e2e; /* Modern VS Code dark aesthetic */
+  color: #cdd6f4;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  font-family: 'Fira Code', 'Consolas', 'Courier New', monospace;
+
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0.85rem;
+    background: #181825;
+    border-bottom: 1px solid #313244;
+  }
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.lang-selector-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #24273a;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #45475a;
+
+  .lang-icon {
+    font-size: 0.85rem;
+  }
+
+  .lang-select {
+    background: transparent;
+    border: none;
+    color: #89b4fa;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+
+    option {
+      background: #181825;
+      color: #cdd6f4;
+    }
+  }
+}
+
+.sandbox-action-btn {
+  background: #313244;
+  border: 1px solid #45475a;
+  color: #cdd6f4;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+
+  &:hover {
+    background: #45475a;
+    color: #ffffff;
+  }
+
+  &--run {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #10b981;
+    color: #ffffff;
+    font-weight: 600;
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #059669, #047857);
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+
+/* Editor Window with Line Numbers */
+.dsa-code-sandbox__editor-window {
+  display: flex;
+  min-height: 240px;
+  max-height: 480px;
+  overflow: auto;
+  position: relative;
+  background: #1e1e2e;
+}
+
+.editor-gutter {
+  padding: 0.85rem 0.5rem 0.85rem 0.75rem;
+  background: #181825;
+  border-right: 1px solid #313244;
+  user-select: none;
+  text-align: right;
+  min-width: 42px;
+
+  .line-number {
+    color: #6c7086;
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+}
+
+.editor-content {
+  flex: 1;
+  position: relative;
+
+  .code-textarea {
+    width: 100%;
+    height: 100%;
+    min-height: 240px;
+    padding: 0.85rem 1rem;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #cdd6f4;
+    font-family: 'Fira Code', 'Consolas', 'Courier New', monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    resize: vertical;
+    white-space: pre;
+    tab-size: 2;
+    overflow-y: auto;
+
+    &::placeholder {
+      color: #6c7086;
+    }
+  }
+}
+
+/* Interactive Output Console */
+.dsa-code-sandbox__console {
+  background: #11111b;
+  border-top: 1px solid #313244;
+  padding: 0.75rem 1rem;
+  font-size: 0.82rem;
+
+  .console-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #313244;
+  }
+
+  .console-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 600;
+    color: #a6adc8;
+  }
+
+  .console-time {
+    font-size: 0.72rem;
+    color: #94e2d5;
+    background: rgba(148, 226, 213, 0.1);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+  }
+
+  .console-close {
+    background: transparent;
+    border: none;
+    color: #6c7086;
+    cursor: pointer;
+    font-size: 0.85rem;
+
+    &:hover {
+      color: #f38ba8;
+    }
+  }
+
+  .console-body {
+    margin: 0;
+    padding: 0.4rem 0;
+    font-family: inherit;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    max-height: 140px;
+    overflow-y: auto;
+  }
+
+  &.console--success .console-body {
+    color: #a6e3a1;
+  }
+
+  &.console--error .console-body {
+    color: #f38ba8;
+  }
+
+  &.console--info .console-body {
+    color: #89b4fa;
+  }
+}

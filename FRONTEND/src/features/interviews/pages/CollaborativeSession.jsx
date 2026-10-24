@@ -66,7 +66,9 @@ export const CollaborativeSession = () => {
       return
     }
 
-    const newSocket = io("http://localhost:3000")
+    const backendBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000"
+    const socketUrl = backendBaseUrl.replace(/\/api\/?$/, "")
+    const newSocket = io(socketUrl, { withCredentials: true })
     setSocket(newSocket)
 
     newSocket.on("connect", () => {
@@ -87,6 +89,9 @@ export const CollaborativeSession = () => {
     newSocket.on("room-joined", (data) => {
       setParticipants(data.room.participants)
       setMessages(data.room.messages)
+      if (data.room.currentQuestion) {
+        setCurrentQuestion(data.room.currentQuestion)
+      }
       toast.success("Joined room successfully!")
     })
 
@@ -103,6 +108,21 @@ export const CollaborativeSession = () => {
         timestamp: new Date(),
         isSystem: true
       }])
+    })
+
+    newSocket.on("user-left", (data) => {
+      setParticipants(data.participants)
+      setMessages(prev => [...prev, {
+        username: "System",
+        text: `${data.username} left the room`,
+        timestamp: new Date(),
+        isSystem: true
+      }])
+    })
+
+    newSocket.on("question-selected", (data) => {
+      setCurrentQuestion(data.question)
+      toast(`Question selected: ${data.question?.title}`, { icon: '📌' })
     })
 
     newSocket.on("new-message", (message) => {
@@ -140,6 +160,13 @@ export const CollaborativeSession = () => {
 
   const selectQuestion = (question) => {
     setCurrentQuestion(question)
+    if (socket && roomCode) {
+      socket.emit("select-question", {
+        roomCode,
+        username,
+        question
+      })
+    }
   }
 
   return (

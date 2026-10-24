@@ -1,7 +1,12 @@
 import React from 'react'
 
-const ProgressHeader = ({ currentStep, totalQuestions, timer }) => {
+const ProgressHeader = ({ currentStep, totalQuestions, timer = 0 }) => {
     const timeSpent = `${Math.floor(timer / 60)}:${(timer % 60).toString().padStart(2, '0')}`
+    const timerClass = timer >= 300 
+        ? 'timer-display--urgent' 
+        : timer >= 180 
+        ? 'timer-display--warning' 
+        : 'timer-display--normal'
 
     return (
         <div className='progress-section'>
@@ -10,8 +15,8 @@ const ProgressHeader = ({ currentStep, totalQuestions, timer }) => {
                     Question {currentStep + 1} of {totalQuestions || '?'}
                 </span>
                 <div className='progress-header-right'>
-                    <span className='timer-label'>Session Time</span>
-                    <span className='timer-display'>{timeSpent}</span>
+                    <span className='timer-label'>⏱️ Elapsed</span>
+                    <span className={`timer-display ${timerClass}`}>{timeSpent}</span>
                 </div>
             </div>
             <div className='progress-bar'>

@@ -82,9 +82,6 @@ async function registerUserController(req, res) {
  * @access Public
  */
 async function loginUserController(req, res) {
-
-     console.log("BODY:", req.body)
-
     const { email, password } = req.body
 
     const user = await userModel.findOne({ email })

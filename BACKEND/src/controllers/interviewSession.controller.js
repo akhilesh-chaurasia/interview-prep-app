@@ -119,7 +119,8 @@ async function submitAnswerController(req, res) {
         )
 
         const nextQuestion = await generateInterviewQuestion({
-            jobDescription: report.jobDescription
+            jobDescription: report.jobDescription,
+            track: session.track || "MERN"
         })
 
         session.questions.push({

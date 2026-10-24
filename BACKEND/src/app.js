@@ -75,11 +75,22 @@ app.use("/api/interview/session" , interviewSessionRouter)
 app.use("/api/admin", adminRouter)
 
 
-app.use((err , req , res , next)=>{
-    console.log(err);
+app.use((err, req, res, next) => {
+    console.error("Error occurred:", err.message || err)
+
+    if (err.name === "MulterError") {
+        if (err.code === "LIMIT_FILE_SIZE") {
+            return res.status(400).json({ message: "File size exceeds 3MB limit." })
+        }
+        return res.status(400).json({ message: err.message })
+    }
+
+    if (err.statusCode && err.statusCode !== 500) {
+        return res.status(err.statusCode).json({ message: err.message })
+    }
 
     return res.status(500).json({
-        message:"Internal server error"
+        message: process.env.NODE_ENV === "production" ? "Internal server error" : (err.message || "Internal server error")
     })
 })
 

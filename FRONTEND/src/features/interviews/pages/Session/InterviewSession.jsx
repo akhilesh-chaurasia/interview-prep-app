@@ -5,7 +5,7 @@ import { getInterviewSession, submitInterviewAnswer, updateInterviewSessionProgr
 
 import ProgressHeader from './ProgressHeader'
 import QuestionNavigator from './QuestionNavigator'
-import AnswerContainer from './AnswerContainer'
+import AnswerContainer, { parseAnswerComponents, formatAnswerComponents } from './AnswerContainer'
 import CompletionCard from './CompletionCard'
 import PerformanceInsights from './PerformanceInsights'
 import InterviewReplay from './InterviewReplay'
@@ -18,10 +18,12 @@ import AIHintCard from './AIHintCard'
 import AutoSaveStatus from './AutoSaveStatus'
 import RecordingStatus from './RecordingStatus'
 import AIThinkingLoader from './AIThinkingLoader'
+import AIVoiceInterviewer from './AIVoiceInterviewer'
+import toast from 'react-hot-toast'
 
 import { useSessionAutoSave } from '../../hooks/useSessionAutoSave'
 
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+const SpeechRecognition = typeof window !== 'undefined' ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null
 
 const InterviewSession = () => {
     const { sessionId } = useParams()
@@ -29,6 +31,11 @@ const InterviewSession = () => {
     const [session, setSession] = useState(null)
     const [answer, setAnswer] = useState("")
     const [isListening, setIsListening] = useState(false)
+    const [interimTranscript, setInterimTranscript] = useState("")
+    const [audioLevel, setAudioLevel] = useState(0)
+    const [speechLang, setSpeechLang] = useState(() => {
+        return localStorage.getItem('prepwise_speech_lang') || 'en-IN'
+    })
     const [loading, setLoading] = useState(true)
     const [timer, setTimer] = useState(0)
     const [saveMessage, setSaveMessage] = useState("")
@@ -38,8 +45,13 @@ const InterviewSession = () => {
     const [recordingStatus, setRecordingStatus] = useState('idle')
     const timerIntervalRef = useRef(null)
     const recognitionRef = useRef(null)
-    const speechBaseRef = useRef('')
-    const speechFinalRef = useRef('')
+    const isListeningRef = useRef(false)
+    const restartTimeoutRef = useRef(null)
+    const baseExplanationRef = useRef('')
+    const currentCodeRef = useRef('')
+    const currentLangRef = useRef('javascript')
+    const accumulatedSpokenRef = useRef('')
+    const currentSessionFinalRef = useRef('')
 
     // Error states
     const [fetchError, setFetchError] = useState(null)
@@ -435,59 +447,209 @@ const InterviewSession = () => {
         }
     }, [session])
 
-    // Voice & Keyboard Handlers
-    const startListening = () => {
-        if (!SpeechRecognition) return alert("Speech Recognition not supported")
-        const recognition = new SpeechRecognition()
-        recognition.continuous = true
-        recognition.interimResults = true
-        recognition.lang = "en-US"
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            isListeningRef.current = false
+            if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current)
+            if (recognitionRef.current) {
+                try {
+                    recognitionRef.current.onend = null
+                    recognitionRef.current.abort()
+                } catch (e) {}
+            }
+        }
+    }, [])
 
-        speechBaseRef.current = answer
-        speechFinalRef.current = ''
+    // Dedicated function to spin up a clean SpeechRecognition instance
+    const createAndStartRecognition = () => {
+        if (!isListeningRef.current) return
 
-        recognition.onresult = (e) => {
-            let interim = ''
-            for (let i = e.resultIndex; i < e.results.length; i++) {
-                const transcript = e.results[i][0].transcript
-                if (e.results[i].isFinal) {
-                    speechFinalRef.current += transcript
-                } else {
-                    interim += transcript
+        // Clean up previous instance
+        if (recognitionRef.current) {
+            try {
+                recognitionRef.current.onend = null
+                recognitionRef.current.onerror = null
+                recognitionRef.current.abort()
+            } catch (e) {}
+            recognitionRef.current = null
+        }
+
+        try {
+            const recognition = new SpeechRecognition()
+            recognition.continuous = true
+            recognition.interimResults = true
+            recognition.lang = speechLang || "en-IN"
+
+            recognition.onstart = () => {
+                console.log("Speech recognition active in:", recognition.lang)
+                setRecordingStatus('listening')
+            }
+
+            recognition.onresult = (e) => {
+                let sessionFinal = ''
+                let sessionInterim = ''
+
+                for (let i = 0; i < e.results.length; i++) {
+                    const transcript = e.results[i][0].transcript
+                    if (e.results[i].isFinal) {
+                        sessionFinal += transcript + ' '
+                    } else {
+                        sessionInterim += transcript
+                    }
+                }
+
+                currentSessionFinalRef.current = sessionFinal
+                setInterimTranscript(sessionInterim)
+
+                const totalSpoken = (accumulatedSpokenRef.current + sessionFinal + sessionInterim).trim()
+                const baseExp = baseExplanationRef.current.trim()
+                const combinedExp = baseExp && totalSpoken ? `${baseExp} ${totalSpoken}` : (totalSpoken || baseExp)
+
+                const fullUpdatedAnswer = formatAnswerComponents(combinedExp, currentCodeRef.current, currentLangRef.current)
+                setAnswer(fullUpdatedAnswer)
+                setRecordingStatus('recording')
+            }
+
+            recognition.onerror = (e) => {
+                console.warn("Speech recognition error:", e.error)
+                if (e.error === 'no-speech') {
+                    // Normal thinking pause, will auto-restart cleanly on onend
+                    return
+                }
+
+                if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+                    toast.error("Microphone access blocked! Please click the lock 🔒 icon in the URL bar and allow Microphone.", { duration: 6000 })
+                    stopListening()
+                    return
+                }
+
+                if (e.error === 'audio-capture') {
+                    toast.error("No microphone sound detected! Check if your mic is muted or selected in Windows settings.", { duration: 5000 })
+                    stopListening()
+                    return
+                }
+
+                if (e.error === 'network') {
+                    toast.error("Speech service network error! Please verify internet connection.", { id: 'speech-net-err', duration: 4000 })
+                    return
                 }
             }
-            const base = speechBaseRef.current
-            const spoken = (speechFinalRef.current + interim).trimStart()
-            const separator = base.trim() && spoken
-                ? (base.endsWith('\n') ? '\n' : ' ')
-                : ''
-            setAnswer(base + separator + spoken)
-            setRecordingStatus('recording')
+
+            recognition.onend = () => {
+                // Commit finalized speech
+                accumulatedSpokenRef.current += currentSessionFinalRef.current
+                currentSessionFinalRef.current = ''
+                setInterimTranscript('')
+
+                // If user is still speaking, restart fresh instance after Chrome finishes C++ teardown
+                if (isListeningRef.current) {
+                    if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current)
+                    restartTimeoutRef.current = setTimeout(() => {
+                        if (isListeningRef.current) {
+                            createAndStartRecognition()
+                        }
+                    }, 150)
+                } else {
+                    setRecordingStatus('idle')
+                    setIsListening(false)
+                }
+            }
+
+            recognitionRef.current = recognition
+            recognition.start()
+        } catch (err) {
+            console.warn("Failed to create/start SpeechRecognition instance:", err)
         }
-        recognition.onerror = () => {
+    }
+
+    // Voice & Keyboard Handlers
+    const startListening = async () => {
+        if (!SpeechRecognition) {
+            toast.error("Speech Recognition is not supported by your browser. Please use Google Chrome, Edge, or Brave.", { duration: 6000 })
+            return
+        }
+
+        // 1. Explicitly prompt / verify microphone permission, then immediately release the track!
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+            stream.getTracks().forEach(track => track.stop())
+        } catch (micErr) {
+            console.error("Mic access error:", micErr)
+            if (micErr.name === 'NotAllowedError' || micErr.name === 'PermissionDeniedError') {
+                toast.error("Microphone access denied! Please click the lock icon 🔒 in your browser address bar and allow Microphone access.", { duration: 6000 })
+            } else if (micErr.name === 'NotFoundError' || micErr.name === 'DevicesNotFoundError') {
+                toast.error("No microphone detected! Please connect a microphone or headset.", { duration: 5000 })
+            } else {
+                toast.error(`Microphone error: ${micErr.message || "Cannot access microphone"}`, { duration: 5000 })
+            }
             setIsListening(false)
+            isListeningRef.current = false
             setRecordingStatus('idle')
+            return
         }
-        recognition.onend = () => {
-            setIsListening(false)
-            setRecordingStatus('processing')
-            setTimeout(() => setRecordingStatus('idle'), 900)
-        }
-        recognitionRef.current = recognition
-        recognition.start()
+
+        // 2. Set active listening states & snapshot current answer baseline
+        isListeningRef.current = true
         setIsListening(true)
         setRecordingStatus('listening')
+
+        const parsed = parseAnswerComponents(answer)
+        baseExplanationRef.current = parsed.explanation
+        currentCodeRef.current = parsed.code
+        currentLangRef.current = parsed.language
+
+        accumulatedSpokenRef.current = ''
+        currentSessionFinalRef.current = ''
+        setInterimTranscript('')
+
+        createAndStartRecognition()
+        toast.success("🎙️ Microphone active! Speak your answer...", { id: 'mic-active', duration: 2500 })
     }
 
     const stopListening = () => {
-        if (recognitionRef.current) recognitionRef.current.stop()
+        isListeningRef.current = false
         setIsListening(false)
         setRecordingStatus('processing')
-        setTimeout(() => setRecordingStatus('idle'), 700)
+        setInterimTranscript('')
+
+        if (restartTimeoutRef.current) {
+            clearTimeout(restartTimeoutRef.current)
+            restartTimeoutRef.current = null
+        }
+
+        if (recognitionRef.current) {
+            try {
+                recognitionRef.current.onend = null
+                recognitionRef.current.stop()
+            } catch (e) {}
+        }
+
+        setTimeout(() => {
+            setRecordingStatus('idle')
+            toast("Microphone turned off", { icon: '⏹', id: 'mic-active', duration: 2000 })
+        }, 300)
+    }
+
+    const handleSpeechLangChange = (newLang) => {
+        setSpeechLang(newLang)
+        localStorage.setItem('prepwise_speech_lang', newLang)
+        if (isListeningRef.current) {
+            toast("Switched to " + (newLang === 'en-IN' ? 'English (India)' : newLang === 'en-US' ? 'English (US)' : newLang === 'hi-IN' ? 'Hindi' : 'English (UK)'), { icon: '🔄', duration: 2000 })
+            stopListening()
+            setTimeout(() => {
+                startListening()
+            }, 400)
+        }
     }
 
     const submitAnswer = async () => {
-        if (!answer.trim()) return
+        if (!answer.trim()) {
+            toast.error("Please write or speak your answer before submitting!")
+            return
+        }
+        if (loading) return
+        if (isListeningRef.current) stopListening()
         try {
             setLoading(true)
             setSubmitError(null)
@@ -518,6 +680,7 @@ const InterviewSession = () => {
     // Navigation handlers (Previous / Next)
     const goToPrevious = async () => {
         if (!session) return
+        if (isListeningRef.current) stopListening()
         setSubmitError(null)
         setSession(prev => {
             if (!prev) return prev
@@ -546,6 +709,7 @@ const InterviewSession = () => {
 
     const goToNext = async () => {
         if (!session) return
+        if (isListeningRef.current) stopListening()
         setSubmitError(null)
         setSession(prev => {
             if (!prev) return prev
@@ -754,8 +918,17 @@ const InterviewSession = () => {
                         <div className='session-topbar'>
                             <div className='topbar-left'>
                                 <ProgressHeader currentStep={session.currentStep} totalQuestions={totalQuestions} timer={timer} />
+                                <AutoSaveStatus isSaving={isAutoSaving} lastSavedAt={lastSavedAt} />
                             </div>
                             <div className='topbar-right'>
+                                <button
+                                    type='button'
+                                    className='btn btn--ghost sidebar-inline-toggle'
+                                    onClick={() => setIsSidebarCollapsed((prev) => !prev)}
+                                    title={isSidebarCollapsed ? 'Show AI Coach panel' : 'Hide AI Coach panel'}
+                                >
+                                    {isSidebarCollapsed ? '◧ Show AI Coach' : '◨ Hide AI Coach'}
+                                </button>
                                 <QuestionNavigator questions={session.questions} currentStep={session.currentStep} />
                             </div>
                         </div>
@@ -772,20 +945,19 @@ const InterviewSession = () => {
                                     <h2 className='workspace-card__title'>{currentQuestion}</h2>
                                 </div>
 
-                                <div className='workspace-card workspace-card--utility'>
-                                    <div className='session-utility-bar'>
-                                        <AutoSaveStatus isSaving={isAutoSaving} lastSavedAt={lastSavedAt} />
-                                        <RecordingStatus status={recordingStatus} />
-                                        <button
-                                            type='button'
-                                            className='btn btn--ghost sidebar-inline-toggle'
-                                            onClick={() => setIsSidebarCollapsed((prev) => !prev)}
-                                            title={isSidebarCollapsed ? 'Show AI side panel' : 'Hide AI side panel'}
-                                        >
-                                            {isSidebarCollapsed ? 'Show AI Panel' : 'Hide AI Panel'}
-                                        </button>
-                                    </div>
-                                </div>
+                                <AIVoiceInterviewer
+                                    question={currentQuestion}
+                                    questionNumber={currentQuestionNumber}
+                                    totalQuestions={totalQuestions}
+                                    isListening={isListening}
+                                    onStartListening={startListening}
+                                    onStopListening={stopListening}
+                                    disabled={loading}
+                                    audioLevel={audioLevel}
+                                    interimTranscript={interimTranscript}
+                                    speechLang={speechLang}
+                                    onSpeechLangChange={handleSpeechLangChange}
+                                />
 
                                 <div className='workspace-card workspace-card--editor'>
                                     <div className='workspace-card__header'>
@@ -799,6 +971,8 @@ const InterviewSession = () => {
                                     <AnswerContainer
                                         answer={answer}
                                         setAnswer={setAnswer}
+                                        track={session?.track}
+                                        isListening={isListening}
                                     />
 
                                     {submitError && (
@@ -901,56 +1075,62 @@ const InterviewSession = () => {
                         </div>
 
                         <div className='action-bar'>
-                            <div className='action-bar__status'>
-                                <span className='action-bar__status-pill'>{saveMessage || 'Session ready'}</span>
-                                <span className='action-bar__shortcut'>Ctrl + Enter</span>
-                                <span className='action-bar__caption'>submit instantly</span>
-                            </div>
-                            <div className='action-bar__actions'>
-                                <div className='action-bar__voice-wrap'>
-                                    <button
-                                        type='button'
-                                        className='btn btn--primary btn--strong'
-                                        onClick={isListening ? stopListening : startListening}
-                                        disabled={loading}
-                                        title='Start or stop speech input'
-                                    >
-                                        {isListening ? 'Stop Speaking' : 'Start Speaking'}
-                                    </button>
-                                    <RecordingStatus status={recordingStatus} />
-                                </div>
-                                <button type='button' className='btn btn--ghost' onClick={saveDraft} title='Save your current answer draft'>
-                                    Save Draft
-                                </button>
-                                <button type='button' className='btn btn--ghost' onClick={handleSaveAndExit} title='Save your progress and leave the session'>
-                                    Save & Exit
+                            <div className='action-bar__left'>
+                                <button
+                                    type='button'
+                                    className='btn-action-ghost'
+                                    onClick={saveDraft}
+                                    title='Save current answer draft'
+                                >
+                                    💾 Save Draft
                                 </button>
                                 <button
                                     type='button'
-                                    className='btn btn--ghost'
+                                    className='btn-action-ghost'
+                                    onClick={handleSaveAndExit}
+                                    title='Save and return to dashboard'
+                                >
+                                    🚪 Exit Session
+                                </button>
+                                {saveMessage && (
+                                    <span className='action-bar__save-pill'>{saveMessage}</span>
+                                )}
+                            </div>
+
+                            <div className='action-bar__center'>
+                                <span className='action-bar__shortcut-hint'>
+                                    Press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to submit
+                                </span>
+                            </div>
+
+                            <div className='action-bar__right'>
+                                <button
+                                    type='button'
+                                    className='btn-action-nav'
                                     onClick={goToPrevious}
                                     disabled={(session?.currentStep ?? 0) <= 0}
                                     title='Previous question'
                                 >
-                                    Previous
+                                    ← Previous
                                 </button>
+                                {(session?.currentStep ?? 0) < ((session?.questions?.length ?? 1) - 1) && (
+                                    <button
+                                        type='button'
+                                        className='btn-action-nav'
+                                        onClick={goToNext}
+                                        title='Next question'
+                                    >
+                                        Next →
+                                    </button>
+                                )}
                                 <button
                                     type='button'
-                                    className='btn btn--ghost'
-                                    onClick={goToNext}
-                                    disabled={(session?.currentStep ?? 0) >= ((session?.questions?.length ?? 1) - 1)}
-                                    title='Next question'
-                                >
-                                    Next Question
-                                </button>
-                                <button
-                                    type='button'
-                                    className='btn btn--primary btn--strong'
+                                    className='btn-action-submit'
                                     onClick={submitAnswer}
                                     disabled={loading || !answer.trim()}
-                                    title='Submit your answer or press Ctrl + Enter'
+                                    title='Submit your answer for evaluation'
                                 >
-                                    Submit Answer
+                                    {loading ? '⏳ Evaluating...' : '🚀 Submit Answer'}
                                 </button>
                             </div>
                         </div>
